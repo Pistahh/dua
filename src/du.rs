@@ -22,8 +22,8 @@ pub struct Entry {
 }
 
 impl Entry {
-    fn new(name: PathBuf, size: u64, entrytype: EntryType, children: Vec<Entry>) -> Entry {
-        Entry { name: name,
+    fn new(name: &Path, size: u64, entrytype: EntryType, children: Vec<Entry>) -> Entry {
+        Entry { name: PathBuf::from(name),
             size: size,
             entrytype: entrytype,
             children: children
@@ -39,14 +39,14 @@ pub fn process_entry(name: &Path, xfs: bool, dev: Option<u64>) -> io::Result<Ent
     let dev = dev.unwrap_or(if xfs { mdev } else { 0 });
 
     if xfs && mdev != dev {
-        return Ok(Entry::new(PathBuf::from(name),
+        return Ok(Entry::new(name,
                     0,
                     EntryType::OtherFs, 
                     vec![]));
     }
 
     if m.is_file() {
-        return Ok(Entry::new(PathBuf::from(name),
+        return Ok(Entry::new(name,
                     m.len(),
                     EntryType::File, 
                     vec![]));
@@ -66,12 +66,12 @@ pub fn process_entry(name: &Path, xfs: bool, dev: Option<u64>) -> io::Result<Ent
         let total_size = v.iter().map(|x| x.size).sum();
         v.sort_by(|a,b| b.size.cmp(&a.size));
 
-        return Ok(Entry::new(PathBuf::from(name),
+        return Ok(Entry::new(name,
                     total_size,
                     EntryType::Directory,
                     v));
     } else {
-        return Ok(Entry::new(PathBuf::from(name),
+        return Ok(Entry::new(name,
                     0,
                     EntryType::Other,
                     vec![]));
