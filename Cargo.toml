@@ -1,0 +1,8 @@
+[package]
+name = "dua"
+version = "0.1.0"
+authors = ["Istvan Szekeres <szekeres@iii.hu>"]
+
+[dependencies]
+clap = "2.20"
+
