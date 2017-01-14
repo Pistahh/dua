@@ -27,7 +27,7 @@ impl Displayer {
         let size = size as f64;
         let k=1024.0;
         if size < k {
-            format!("{:-5.1}", size)
+            format!("{:-6}", size)
         } else if size < k*k {
             format!("{:-5.1}K", size/k)
         } else if size < k*k*k {
