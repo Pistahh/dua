@@ -62,7 +62,8 @@ impl Displayer {
             print!(" {}", entry.name.display());
             match entry.entrytype {
                 EntryType::Directory => { print!("/"); },
-                EntryType::Other     => { print!(" [X]"); },
+                EntryType::OtherFs   => { print!(" [X]"); },
+                EntryType::Other     => { print!(" [?]"); },
                 _ => {}
             };
             println!();

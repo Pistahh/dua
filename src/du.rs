@@ -1,5 +1,5 @@
 
-use std::fs::{read_dir, metadata};
+use std::fs::{read_dir, symlink_metadata};
 use std::path::{PathBuf, Path};
 use std::io;
 use std::env;
@@ -32,7 +32,7 @@ impl Entry {
 }
 
 pub fn process_entry(name: &Path, xfs: bool, dev: Option<u64>) -> io::Result<Entry> {
-    let m = try!(metadata(name));
+    let m = try!(symlink_metadata(name));
   
     let mdev = m.dev();
 
