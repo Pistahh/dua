@@ -57,5 +57,5 @@ a console version of KDirStat or WinDirStat
     
 # Author
 
-István Szekeres <szekeres@iii.hu>
+Pistahh - István Szekeres <szekeres@iii.hu>
 
