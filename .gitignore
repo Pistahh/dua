@@ -1,3 +1,5 @@
+output
+tmp
 target
 Cargo.lock
 *.swn
