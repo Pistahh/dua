@@ -18,11 +18,11 @@ pub struct Entry {
     pub name: PathBuf,
     pub size: u64,
     pub entrytype: EntryType,
-    pub children: Vec<Entry>
+    pub children: Option<Vec<Entry>>
 }
 
 impl Entry {
-    fn new(name: &Path, size: u64, entrytype: EntryType, children: Vec<Entry>) -> Entry {
+    fn new(name: &Path, size: u64, entrytype: EntryType, children: Option<Vec<Entry>>) -> Entry {
         Entry { name: PathBuf::from(name),
             size: size,
             entrytype: entrytype,
@@ -42,14 +42,14 @@ pub fn process_entry(name: &Path, xfs: bool, dev: Option<u64>) -> io::Result<Ent
         return Ok(Entry::new(name,
                     0,
                     EntryType::OtherFs, 
-                    vec![]));
+                    None));
     }
 
     if m.is_file() {
         return Ok(Entry::new(name,
                     m.len(),
                     EntryType::File, 
-                    vec![]));
+                    None));
     } else if m.is_dir() {
         let mut v: Vec<Entry> = vec![];
         let cwd = try!(env::current_dir());
@@ -69,11 +69,11 @@ pub fn process_entry(name: &Path, xfs: bool, dev: Option<u64>) -> io::Result<Ent
         return Ok(Entry::new(name,
                     total_size,
                     EntryType::Directory,
-                    v));
+                    Some(v)));
     } else {
         return Ok(Entry::new(name,
                     0,
                     EntryType::Other,
-                    vec![]));
+                    None));
     }
 }

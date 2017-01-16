@@ -75,10 +75,12 @@ impl Displayer {
             self.show_entry(level, &entry, allsize);
             if entry.entrytype == EntryType::Directory && level < self.depth-1 {
                     let mut n = self.num;
-                    for ce in &entry.children {
-                        self.show_usage_level(&ce, level+1, entry.size);
-                        n = n-1;
-                        if n == 0 { break; }
+                    if let Some(ref children) = entry.children {
+                            for ce in children {
+                                    self.show_usage_level(&ce, level+1, entry.size);
+                                    n = n-1;
+                                    if n == 0 { break; }
+                            }
                     }
             }
     }
