@@ -41,8 +41,12 @@ fn main() {
                                .help("number of entries to display on each level")
                                .required(false)
                                .takes_value(true))
+                          .arg(Arg::with_name("depth")
+                               .short("d")
+                               .help("depth to display")
+                               .required(false)
+                               .takes_value(true))
                           .arg(Arg::with_name("DIR")
-                               .short("directory")
                                .index(1)
                                .help("Directory to analyze"))
                           .get_matches();
@@ -66,12 +70,14 @@ fn main() {
         };
 
         let num = matches.value_of("num").map_or(1, |x| x.parse::<usize>().unwrap_or(1));
+        const DEFAULT_DEPTH: u32 = 999999;
+        let depth = matches.value_of("depth").map_or(DEFAULT_DEPTH, |x| x.parse::<u32>().unwrap_or(DEFAULT_DEPTH));
 
 	let res = du::process_entry(Path::new(dir), xfs, None);
 
 	match res {
 		Ok(entry)  => {
-                    let d = Displayer::new(dm, num);
+                    let d = Displayer::new(dm, num, depth);
                     d.display(&entry);
                 },
 		Err(err) => {

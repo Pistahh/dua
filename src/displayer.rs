@@ -11,11 +11,12 @@ pub enum DisplayType {
 pub struct Displayer {
     dt: DisplayType,
     num: usize,
+    depth: u32,
 }
 
 impl Displayer {
-    pub fn new(dt: DisplayType, num: usize) -> Displayer {
-        Displayer { dt: dt, num: num }
+    pub fn new(dt: DisplayType, num: usize, depth: u32) -> Displayer {
+        Displayer { dt: dt, num: num, depth: depth }
     }
 
     pub fn display(&self, entry: &Entry) {
@@ -72,7 +73,7 @@ impl Displayer {
 
     fn show_usage_level(&self, entry: &Entry, level: u32, allsize: u64) {
             self.show_entry(level, &entry, allsize);
-            if entry.entrytype == EntryType::Directory {
+            if entry.entrytype == EntryType::Directory && level < self.depth-1 {
                     let mut n = self.num;
                     for ce in &entry.children {
                         self.show_usage_level(&ce, level+1, entry.size);
