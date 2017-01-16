@@ -69,7 +69,9 @@ fn main() {
             DisplayType::Normal
         };
 
-        let num = matches.value_of("num").map_or(1, |x| x.parse::<usize>().unwrap_or(1));
+        const DEFAULT_NUM: usize = 1;
+        let num = matches.value_of("num").map_or(DEFAULT_NUM, |x| x.parse::<usize>().unwrap_or(DEFAULT_NUM));
+
         const DEFAULT_DEPTH: u32 = 999999;
         let depth = matches.value_of("depth").map_or(DEFAULT_DEPTH, |x| x.parse::<u32>().unwrap_or(DEFAULT_DEPTH));
 
