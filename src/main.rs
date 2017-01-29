@@ -72,8 +72,7 @@ fn main() {
         const DEFAULT_NUM: usize = 1;
         let num = matches.value_of("num").map_or(DEFAULT_NUM, |x| x.parse::<usize>().unwrap_or(DEFAULT_NUM));
 
-        const DEFAULT_DEPTH: u32 = 999999;
-        let depth = matches.value_of("depth").map_or(DEFAULT_DEPTH, |x| x.parse::<u32>().unwrap_or(DEFAULT_DEPTH));
+        let depth = matches.value_of("depth").map_or(std::u32::MAX, |x| x.parse::<u32>().unwrap_or(std::u32::MAX));
 
 	let entry = du::process_entry(Path::new(dir), xfs, None);
 
