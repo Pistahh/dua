@@ -10,6 +10,7 @@ pub enum EntryType {
     File,
     Directory,
     OtherFs,
+    Error,
     Other,
 }
 
@@ -18,47 +19,80 @@ pub struct Entry {
     pub name: PathBuf,
     pub size: u64,
     pub entrytype: EntryType,
-    pub children: Option<Vec<Entry>>
+    pub children: Option<Vec<Entry>>,
+    pub error: Option<io::Error>,
 }
 
 impl Entry {
-    fn new(name: &Path, size: u64, entrytype: EntryType, children: Option<Vec<Entry>>) -> Entry {
+    fn new(name: &Path, size: u64, entrytype: EntryType, children: Option<Vec<Entry>>, error: Option<io::Error>) -> Entry {
         Entry { name: PathBuf::from(name),
             size: size,
             entrytype: entrytype,
-            children: children
+            children: children,
+            error: error,
         }
     }
 }
 
-pub fn process_entry(name: &Path, xfs: bool, dev: Option<u64>) -> io::Result<Entry> {
-    let m = try!(symlink_metadata(name));
-  
+pub fn process_entry(name: &Path, xfs: bool, dev: Option<u64>) -> Entry {
+
+    let m = symlink_metadata(name);
+
+    if let Err(err) = m {
+        return Entry::new(name,
+                          0,
+                          EntryType::Error,
+                          None,
+                          Some(err));
+    }
+
+    let m = m.unwrap();
+
     let mdev = m.dev();
 
     let dev = dev.unwrap_or(if xfs { mdev } else { 0 });
 
     if xfs && mdev != dev {
-        return Ok(Entry::new(name,
-                    0,
-                    EntryType::OtherFs, 
-                    None));
+        return Entry::new(name,
+                          0,
+                          EntryType::OtherFs,
+                          None,
+                          None);
     }
 
     if m.is_file() {
-        return Ok(Entry::new(name,
-                    m.len(),
-                    EntryType::File, 
-                    None));
+        return Entry::new(name,
+                          m.len(),
+                          EntryType::File,
+                          None,
+                          None);
     } else if m.is_dir() {
+        let cwd = env::current_dir().unwrap();
+        if let Err(err) = env::set_current_dir(name) {
+            return Entry::new(name,
+                              0,
+                              EntryType::Error,
+                              None,
+                              Some(err));
+        }
+        let dir_list = read_dir(".");
+
+        if let Err(err) = dir_list {
+            env::set_current_dir(cwd).unwrap();
+            return Entry::new(name,
+                              0,
+                              EntryType::Error,
+                              None,
+                              Some(err));
+        }
+
         let mut v: Vec<Entry> = vec![];
-        let cwd = try!(env::current_dir());
-        try!(env::set_current_dir(name));
-        for entry in try!(read_dir(".")) {
-            let entry=try!(entry);
-            let subentry = try!(process_entry(entry.file_name().as_ref(),
-                                              xfs,
-                                              Some(dev)));
+
+        for entry in dir_list.unwrap() {
+            let entry=entry.unwrap();
+            let subentry = process_entry(entry.file_name().as_ref(),
+                                         xfs,
+                                         Some(dev));
             v.push(subentry);
         }
         assert!(env::set_current_dir(cwd).is_ok());
@@ -66,14 +100,16 @@ pub fn process_entry(name: &Path, xfs: bool, dev: Option<u64>) -> io::Result<Ent
         let total_size = v.iter().map(|x| x.size).sum();
         v.sort_by(|a,b| b.size.cmp(&a.size));
 
-        return Ok(Entry::new(name,
-                    total_size,
-                    EntryType::Directory,
-                    Some(v)));
+        return Entry::new(name,
+                          total_size,
+                          EntryType::Directory,
+                          Some(v),
+                          None);
     } else {
-        return Ok(Entry::new(name,
-                    0,
-                    EntryType::Other,
-                    None));
+        return Entry::new(name,
+                          0,
+                          EntryType::Other,
+                          None,
+                          None);
     }
 }

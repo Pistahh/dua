@@ -75,16 +75,8 @@ fn main() {
         const DEFAULT_DEPTH: u32 = 999999;
         let depth = matches.value_of("depth").map_or(DEFAULT_DEPTH, |x| x.parse::<u32>().unwrap_or(DEFAULT_DEPTH));
 
-	let res = du::process_entry(Path::new(dir), xfs, None);
+	let entry = du::process_entry(Path::new(dir), xfs, None);
 
-	match res {
-		Ok(entry)  => {
-                    let d = Displayer::new(dm, num, depth);
-                    d.display(&entry);
-                },
-		Err(err) => {
-			writeln!(&mut stderr, "{:?}", err.kind()).unwrap();
-                        exit(1);
-		}
-	}
+        let d = Displayer::new(dm, num, depth);
+        d.display(&entry);
 }

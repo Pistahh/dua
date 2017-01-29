@@ -65,6 +65,19 @@ impl Displayer {
                 EntryType::Directory => { print!("/"); },
                 EntryType::OtherFs   => { print!(" [X]"); },
                 EntryType::Other     => { print!(" [?]"); },
+                EntryType::Error     => {
+                    print!(" [ERROR: ");
+                    if let Some(ref err) = entry.error {
+                        if let Some(ref inner) = err.get_ref() {
+                            print!("{:?}", inner);
+                        } else {
+                            print!("{:?}", err.kind())
+                        };
+                    } else {
+                        print!("???");
+                    }
+                    print!("]");
+                },
                 _ => {}
             };
             println!();
