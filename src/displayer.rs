@@ -1,5 +1,5 @@
 
-use du::{Entry,EntryType};
+use du::{Entry,EntryData};
 
 #[derive(PartialEq,Eq)]
 pub enum DisplayType {
@@ -20,7 +20,7 @@ impl Displayer {
     }
 
     pub fn display(&self, entry: &Entry) {
-        self.show_usage_level(entry, 0, entry.size) ;
+        self.show_usage_level(entry, 0, entry.size()) ;
     }
 
     fn to_human(&self, size: u64) -> String {
@@ -45,57 +45,57 @@ impl Displayer {
     }
 
     fn show_entry(&self, level: u32, entry: &Entry, allsize: u64) {
-            //println!("{:?}", entry);
-            for _ in 0..level {
-                print!("   ");
-            }
+        //println!("{:?}", entry);
+        for _ in 0..level {
+            print!("   ");
+        }
 
-            let pct = if allsize == 0 { 0.0 } else { entry.size as f64 / allsize as f64 * 100.0 };
+        let Entry(ref name, ref data) = *entry;
 
-            print!("{:>5.1}% ", pct);
+        let size = entry.size();
 
-            match self.dt {
-                DisplayType::Normal        => { print!("{:12}", entry.size); }
-                DisplayType::KiBytes       => { print!("{:9}", entry.size/1024); }
-                DisplayType::HumanReadable => { print!("{:6}", self.to_human(entry.size)); }
-            }
+        let pct = if allsize == 0 { 0.0 } else { size as f64 / allsize as f64 * 100.0 };
 
-            print!(" {}", entry.name.display());
-            match entry.entrytype {
-                EntryType::Directory => { print!("/"); },
-                EntryType::OtherFs   => { print!(" [X]"); },
-                EntryType::Other     => { print!(" [?]"); },
-                EntryType::Error     => {
-                    print!(" [ERROR: ");
-                    if let Some(ref err) = entry.error {
-                        if let Some(ref inner) = err.get_ref() {
-                            print!("{:?}", inner);
-                        } else {
-                            print!("{:?}", err.kind())
-                        };
-                    } else {
-                        print!("???");
-                    }
-                    print!("]");
-                },
-                _ => {}
-            };
-            println!();
+        print!("{:>5.1}% ", pct);
+
+        match self.dt {
+            DisplayType::Normal        => { print!("{:12}", size); }
+            DisplayType::KiBytes       => { print!("{:9}", size/1024); }
+            DisplayType::HumanReadable => { print!("{:6}", self.to_human(size)); }
+        }
+
+        print!(" {}", name.display());
+        match data {
+            &EntryData::Directory{..} => { print!("/"); },
+            &EntryData::OtherFs      => { print!(" [X]"); },
+            &EntryData::Other        => { print!(" [?]"); },
+            &EntryData::Error(ref error) => {
+                print!(" [ERROR: ");
+                if let Some(ref inner) = error.get_ref() {
+                    print!("{:?}", inner);
+                } else {
+                    print!("{:?}", error.kind())
+                };
+                print!("]");
+            },
+            _ => {}
+        };
+        println!();
 
     }
 
     fn show_usage_level(&self, entry: &Entry, level: u32, allsize: u64) {
-            self.show_entry(level, &entry, allsize);
-            if entry.entrytype == EntryType::Directory && level < self.depth-1 {
-                    let mut n = self.num;
-                    if let Some(ref children) = entry.children {
-                            for ce in children {
-                                    self.show_usage_level(&ce, level+1, entry.size);
-                                    n = n-1;
-                                    if n == 0 { break; }
-                            }
-                    }
+        self.show_entry(level, &entry, allsize);
+        if level < self.depth-1 {
+            if let Entry(_, EntryData::Directory{ size, ref children }) = *entry {
+                let mut n = self.num;
+                for ce in children {
+                    self.show_usage_level(&ce, level+1, size);
+                    n = n-1;
+                    if n == 0 { break; }
+                }
             }
+        }
     }
 }
 
