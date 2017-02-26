@@ -1,8 +1,20 @@
 [package]
 name = "dua"
-version = "0.1.0"
+version = "1.1.0"
 authors = ["Istvan Szekeres <szekeres@iii.hu>"]
+description = """
+Disk Usage Analyzer (DUA) is a linux console application to display what uses the most space in the specified directories. Think about it as a console version of KDirStat or WinDirStat
+"""
+documentation = "https://github.com/Pistahh/dua"
+homepage = "https://github.com/Pistahh/dua"
+repository = "https://github.com/Pistahh/dua"
+license-file = "LICENSE"
+keywords = [ "linux", "disk", "usage", "filesystem" ]
 
 [dependencies]
 clap = "2.20"
 
+[[bin]]
+bench = false
+path = "src/main.rs"
+name = "dua"
